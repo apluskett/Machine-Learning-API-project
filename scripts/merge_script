@@ -1,0 +1,150 @@
+"""
+Merge F1 historic data (2018-2024) with 2025 data (races 1-18)
+"""
+
+import pandas as pd
+from pathlib import Path
+
+# Paths
+RAW_DIR = Path("data/raw")
+HISTORIC_FILE = RAW_DIR / "historic-results.csv"
+HISTORIC_RACES = RAW_DIR / "historic-races.csv"
+KAGGLE_2025_FILE = RAW_DIR / "2025-results.csv"
+OUTPUT_FILE = Path("data/f1_results.csv")
+
+def load_historic():
+    """Load and filter historic data to 2018-2024"""
+    print("📊 Loading historic data (1950-2024)...")
+    
+    df = pd.read_csv(HISTORIC_FILE)
+    print(f"  Total rows: {len(df):,}")
+    
+    # Get year from races.csv
+    print("  Loading races.csv for year info...")
+    races = pd.read_csv(HISTORIC_RACES)
+    df = df.merge(races[['raceId', 'year']], on='raceId', how='left')
+    
+    # Filter to 2018-2024
+    df = df[df['year'] >= 2018]
+    print(f"  Filtered to 2018-2024: {len(df):,} rows")
+    
+    # FIX: Drop the text position column, keep positionOrder
+    df = df.drop(columns=['position', 'positionText'])  # ← ADD THIS LINE
+    
+    # Now rename positionOrder to position
+    df = df.rename(columns={
+        'positionOrder': 'position',
+        'driverId': 'driver'
+    })
+    
+    return df
+
+def load_kaggle_2025():
+    """Load 2025 data - ONLY races 1-18 for training"""
+    print("\n📊 Loading 2025 data...")
+    
+    df = pd.read_csv(KAGGLE_2025_FILE)
+    print(f"  Total rows: {len(df):,}")
+    
+    # Standardize column names
+    df = df.rename(columns={
+        'Starting Grid': 'grid',
+        'Position': 'position',
+        'Points': 'points',
+        'Driver': 'driver',
+        'Track': 'track'
+    })
+    
+    # Add year
+    df['year'] = 2025
+    
+    # Get unique races and only keep first 18
+    unique_tracks = df['track'].unique()
+    print(f"  Found {len(unique_tracks)} unique races")
+    
+    if len(unique_tracks) > 18:
+        first_18_tracks = unique_tracks[:18]
+        df = df[df['track'].isin(first_18_tracks)]
+        print(f"  ⚠️  Filtered to first 18 races: {len(df)} rows")
+        print(f"  Training races: {list(first_18_tracks)}")
+    
+    return df
+
+def merge_and_clean(historic, kaggle):
+    """Merge and clean"""
+    print("\n🔄 Merging datasets...")
+    
+    # Select common columns
+    cols = ['year', 'grid', 'position', 'points', 'driver']
+    
+    print(f"  Historic columns available: {historic.columns.tolist()}")
+    print(f"  Kaggle columns available: {kaggle.columns.tolist()}")
+    
+    historic_clean = historic[cols].copy()
+    kaggle_clean = kaggle[cols].copy()
+    
+    # Combine
+    combined = pd.concat([historic_clean, kaggle_clean], ignore_index=True)
+    print(f"  Combined: {len(combined):,} rows")
+    
+    # Clean
+    print("\n🧹 Cleaning...")
+    
+    # Convert position to numeric (handles 'NC', 'DNF', etc.)
+    combined['position'] = pd.to_numeric(combined['position'], errors='coerce')
+    combined['grid'] = pd.to_numeric(combined['grid'], errors='coerce')
+    
+    # Remove rows with missing data
+    before = len(combined)
+    combined = combined.dropna(subset=['position', 'grid'])
+    print(f"  Removed {before - len(combined):,} rows with missing data")
+    
+    # Remove duplicates
+    before = len(combined)
+    combined = combined.drop_duplicates()
+    if before > len(combined):
+        print(f"  Removed {before - len(combined):,} duplicates")
+    
+    # Sort
+    combined = combined.sort_values(['year', 'position'])
+    
+    print(f"  Final: {len(combined):,} rows")
+    
+    return combined
+
+def save_dataset(df):
+    """Save"""
+    print(f"\n💾 Saving to {OUTPUT_FILE}...")
+    OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
+    df.to_csv(OUTPUT_FILE, index=False)
+    
+    print("\n📊 Final Dataset:")
+    print(f"  Rows: {len(df):,}")
+    print(f"  Years: {int(df['year'].min())} - {int(df['year'].max())}")
+    print(f"  Columns: {list(df.columns)}")
+    
+    print(f"\n📋 Sample:")
+    print(df.head(10))
+    
+    print(f"\n📊 Summary:")
+    print(df[['year', 'grid', 'position', 'points']].describe())
+
+def main():
+    print("=" * 60)
+    print("F1 Data Merger")
+    print("=" * 60)
+    print()
+    
+    historic = load_historic()
+    kaggle = load_kaggle_2025()
+    
+    combined = merge_and_clean(historic, kaggle)
+    save_dataset(combined)
+    
+    print("\n" + "=" * 60)
+    print("✅ Complete!")
+    print("=" * 60)
+    print("\nNext: python ml/wghtlinreg.py")
+
+if __name__ == "__main__":
+    main()
