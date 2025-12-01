@@ -1,10 +1,11 @@
 """
-Weighted Linear Regression for F1 Predictions
+Weighted XGBoost for F1 Predictions
+Uses the same features and weighting as linear regression for fair comparison
 """
 
 import pandas as pd
 import numpy as np
-from sklearn.linear_model import LinearRegression
+import xgboost as xgb
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
@@ -12,7 +13,7 @@ import joblib
 from pathlib import Path
 
 DATA_PATH = Path("dataset/F1_training_data.csv")
-MODEL_PATH = Path("models/trained/linear_v0.1.joblib")
+MODEL_PATH = Path("models/trained/xgboost_v0.1.joblib")
 
 def load_data():
     print("📊 Loading training data...")
@@ -25,7 +26,7 @@ def load_data():
 def create_features(df):
     print("\n🔧 Creating feature matrix...")
     
-    # Use ONLY numerical features (engineered features replace categorical ones)
+    # Use SAME features as linear regression for fair comparison
     feature_cols = [
         'grid',                    # Starting position
         'driver_avg_position',     # Driver's rolling avg finish
@@ -40,7 +41,7 @@ def create_features(df):
     X = df[feature_cols].copy()
     y = df['position'].copy()
     
-    # Remove any rows with NaN (shouldn't be any after feature engineering)
+    # Remove any rows with NaN
     mask = ~(X.isna().any(axis=1) | y.isna())
     X = X[mask]
     y = y[mask]
@@ -55,8 +56,7 @@ def create_weights(df):
     years = df['year'].values
     max_year = years.max()
     
-    # Exponential decay: more recent years get higher weights
-    # decay_rate = 0.15 means each year back reduces weight by ~14%
+    # SAME decay rate as linear regression for fair comparison
     decay_rate = 0.22
     weights = np.exp(-(max_year - years) * decay_rate)
     
@@ -67,9 +67,9 @@ def create_weights(df):
     return weights
 
 def train_model(X, y, weights):
-    print("\n🎯 Training weighted linear regression...")
+    print("\n🎯 Training weighted XGBoost...")
     
-    # Split data for validation
+    # Split data for validation (same as linear regression)
     X_train, X_val, y_train, y_val, w_train, w_val = train_test_split(
         X, y, weights, test_size=0.15, random_state=42
     )
@@ -77,44 +77,81 @@ def train_model(X, y, weights):
     print(f"   Training samples: {len(X_train)}")
     print(f"   Validation samples: {len(X_val)}")
     
-    # Scale features
+    # Scale features (keeps comparison fair with linear regression)
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
     X_val_scaled = scaler.transform(X_val)
     
-    # Train weighted linear regression
-    model = LinearRegression()
-    model.fit(X_train_scaled, y_train, sample_weight=w_train)
+    # XGBoost parameters optimized for regression
+    params = {
+        'objective': 'reg:squarederror',
+        'max_depth': 6,              # Depth of trees
+        'learning_rate': 0.1,        # Step size shrinkage
+        'n_estimators': 200,         # Number of boosting rounds
+        'min_child_weight': 1,       # Minimum sum of instance weight
+        'subsample': 0.8,            # Subsample ratio of training instances
+        'colsample_bytree': 0.8,     # Subsample ratio of columns
+        'gamma': 0,                  # Minimum loss reduction
+        'reg_alpha': 0.1,            # L1 regularization
+        'reg_lambda': 1.0,           # L2 regularization
+        'random_state': 42,
+        'n_jobs': -1                 # Use all CPU cores
+    }
+    
+    print(f"\n🌲 XGBoost Parameters:")
+    for key, val in params.items():
+        print(f"   {key:20s}: {val}")
+    
+    # Train XGBoost with sample weights
+    model = xgb.XGBRegressor(**params)
+    
+    model.fit(
+        X_train_scaled, 
+        y_train, 
+        sample_weight=w_train,
+        eval_set=[(X_val_scaled, y_val)],
+        sample_weight_eval_set=[w_val],
+        verbose=False
+    )
     
     # Evaluate
-    train_score = model.score(X_train_scaled, y_train)
-    val_score = model.score(X_val_scaled, y_val)
+    train_pred = model.predict(X_train_scaled)
+    val_pred = model.predict(X_val_scaled)
     
-    y_val_pred = model.predict(X_val_scaled)
-    mae = mean_absolute_error(y_val, y_val_pred)
-    rmse = np.sqrt(mean_squared_error(y_val, y_val_pred))
+    train_r2 = r2_score(y_train, train_pred)
+    val_r2 = r2_score(y_val, val_pred)
+    
+    mae = mean_absolute_error(y_val, val_pred)
+    rmse = np.sqrt(mean_squared_error(y_val, val_pred))
     
     print(f"\n📊 Model Performance:")
-    print(f"   Training R²: {train_score:.4f}")
-    print(f"   Validation R²: {val_score:.4f}")
+    print(f"   Training R²: {train_r2:.4f}")
+    print(f"   Validation R²: {val_r2:.4f}")
     print(f"   Validation MAE: {mae:.2f} positions")
     print(f"   Validation RMSE: {rmse:.2f} positions")
     
-    # Show feature importance (coefficients)
-    print(f"\n📈 Feature Coefficients:")
-    for feat, coef in zip(X.columns, model.coef_):
-        print(f"   {feat:25s}: {coef:+.4f}")
+    # Show feature importance
+    print(f"\n📈 Feature Importance (gain):")
+    importance = model.get_booster().get_score(importance_type='gain')
+    
+    # Map feature names (XGBoost uses f0, f1, etc.)
+    feature_names = X.columns.tolist()
+    for i, feat in enumerate(feature_names):
+        feat_key = f'f{i}'
+        if feat_key in importance:
+            print(f"   {feat:25s}: {importance[feat_key]:.2f}")
     
     return model, scaler
 
 def save_model(model, scaler):
-    print("💾 Saving model...")
+    print("\n💾 Saving model...")
     MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
     
     package = {
         'model': model,
         'scaler': scaler,
-        'version': 'v0.1'
+        'version': 'v0.1',
+        'model_type': 'xgboost'
     }
     
     joblib.dump(package, MODEL_PATH)
@@ -122,7 +159,7 @@ def save_model(model, scaler):
 
 def main():
     print("=" * 70)
-    print("F1 Weighted Linear Regression Training")
+    print("F1 Weighted XGBoost Training")
     print("=" * 70)
     
     df = load_data()
@@ -135,9 +172,10 @@ def main():
     print("✅ Training complete!")
     print("=" * 70)
     print("\n📝 Next steps:")
-    print("   1. Model saved to: models/trained/linear_v0.1.joblib")
-    print("   2. Update app/main.py to use the trained model")
-    print("   3. Test predictions on 2025 races 19-24")
+    print("   1. Model saved to: models/trained/xgboost_v0.1.joblib")
+    print("   2. Compare with linear regression performance")
+    print("   3. Test predictions with scripts/predict_remaining_races.py")
+    print("   4. XGBoost is now available in the API at /predict/xgboost")
 
 if __name__ == "__main__":
     main()

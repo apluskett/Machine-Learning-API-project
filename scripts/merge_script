@@ -1,50 +1,42 @@
 """
-Merge F1 historic data (2018-2024) with 2025 data (races 1-18)
+Merge F1 historic data (2018-2025 through race 18) for training
 """
 
 import pandas as pd
 from pathlib import Path
 
 # Paths
-RAW_DIR = Path("data/raw")
-HISTORIC_FILE = RAW_DIR / "historic-results.csv"
-HISTORIC_RACES = RAW_DIR / "historic-races.csv"
-KAGGLE_2025_FILE = RAW_DIR / "2025-results.csv"
-OUTPUT_FILE = Path("data/f1_results.csv")
+DATASET_DIR = Path("dataset")
+OUTPUT_FILE = Path("dataset/F1_training_data.csv")
 
-def load_historic():
-    """Load and filter historic data to 2018-2024"""
-    print("📊 Loading historic data (1950-2024)...")
-    
-    df = pd.read_csv(HISTORIC_FILE)
-    print(f"  Total rows: {len(df):,}")
-    
-    # Get year from races.csv
-    print("  Loading races.csv for year info...")
-    races = pd.read_csv(HISTORIC_RACES)
-    df = df.merge(races[['raceId', 'year']], on='raceId', how='left')
-    
-    # Filter to 2018-2024
-    df = df[df['year'] >= 2018]
-    print(f"  Filtered to 2018-2024: {len(df):,} rows")
-    
-    # FIX: Drop the text position column, keep positionOrder
-    df = df.drop(columns=['position', 'positionText'])  # ← ADD THIS LINE
-    
-    # Now rename positionOrder to position
-    df = df.rename(columns={
-        'positionOrder': 'position',
-        'driverId': 'driver'
-    })
-    
-    return df
+# Race 18 is Singapore GP
+RACE_18_NAME = "Singapore"
 
-def load_kaggle_2025():
-    """Load 2025 data - ONLY races 1-18 for training"""
-    print("\n📊 Loading 2025 data...")
+def load_season_data(year):
+    """Load data for a specific season"""
+    if year == 2018:
+        filename = "Formula1_2018Season_RaceResults.csv"
+    elif year == 2019:
+        filename = "formula1_2019season_raceResults.csv"
+    elif year == 2020:
+        filename = "formula1_2020season_raceResults.csv"
+    elif year == 2021:
+        filename = "formula1_2021season_raceResults.csv"
+    elif year == 2022:
+        filename = "Formula1_2022season_raceResults.csv"
+    elif year == 2023:
+        filename = "Formula1_2023season_raceResults.csv"
+    elif year == 2024:
+        filename = "Formula1_2024season_raceResults.csv"
+    elif year == 2025:
+        filename = "Formula1_2025Season_RaceResults.csv"
+    else:
+        raise ValueError(f"Year {year} not supported")
     
-    df = pd.read_csv(KAGGLE_2025_FILE)
-    print(f"  Total rows: {len(df):,}")
+    filepath = DATASET_DIR / filename
+    print(f"  Loading {filename}...")
+    
+    df = pd.read_csv(filepath)
     
     # Standardize column names
     df = df.rename(columns={
@@ -56,95 +48,198 @@ def load_kaggle_2025():
     })
     
     # Add year
-    df['year'] = 2025
-    
-    # Get unique races and only keep first 18
-    unique_tracks = df['track'].unique()
-    print(f"  Found {len(unique_tracks)} unique races")
-    
-    if len(unique_tracks) > 18:
-        first_18_tracks = unique_tracks[:18]
-        df = df[df['track'].isin(first_18_tracks)]
-        print(f"  ⚠️  Filtered to first 18 races: {len(df)} rows")
-        print(f"  Training races: {list(first_18_tracks)}")
+    df['year'] = year
     
     return df
 
-def merge_and_clean(historic, kaggle):
-    """Merge and clean"""
-    print("\n🔄 Merging datasets...")
+def load_all_seasons():
+    """Load and combine all seasons 2018-2024, plus 2025 through race 18"""
+    print("📊 Loading all season data (2018-2025)...")
     
-    # Select common columns
-    cols = ['year', 'grid', 'position', 'points', 'driver']
+    all_data = []
     
-    print(f"  Historic columns available: {historic.columns.tolist()}")
-    print(f"  Kaggle columns available: {kaggle.columns.tolist()}")
+    # Load full seasons 2018-2024
+    for year in range(2018, 2025):
+        df = load_season_data(year)
+        print(f"    {year}: {len(df)} rows")
+        all_data.append(df)
     
-    historic_clean = historic[cols].copy()
-    kaggle_clean = kaggle[cols].copy()
+    # Load 2025 but filter to race 18 (Mexico)
+    print(f"  Loading 2025 (filtering to race 18: {RACE_18_NAME})...")
+    df_2025 = load_season_data(2025)
     
-    # Combine
-    combined = pd.concat([historic_clean, kaggle_clean], ignore_index=True)
-    print(f"  Combined: {len(combined):,} rows")
+    # Get unique races in order
+    unique_tracks = df_2025['track'].unique()
+    print(f"    Found {len(unique_tracks)} races in 2025")
+    print(f"    Races: {list(unique_tracks)}")
     
-    # Clean
-    print("\n🧹 Cleaning...")
+    # Find index of Mexico (race 18)
+    try:
+        mexico_idx = list(unique_tracks).index(RACE_18_NAME)
+        first_18_tracks = unique_tracks[:mexico_idx + 1]
+        df_2025 = df_2025[df_2025['track'].isin(first_18_tracks)]
+        print(f"    ✓ Filtered to first 18 races (through {RACE_18_NAME}): {len(df_2025)} rows")
+    except ValueError:
+        print(f"    ⚠️  {RACE_18_NAME} not found, taking first 18 races")
+        first_18_tracks = unique_tracks[:18]
+        df_2025 = df_2025[df_2025['track'].isin(first_18_tracks)]
+        print(f"    Filtered to: {list(first_18_tracks)}")
     
-    # Convert position to numeric (handles 'NC', 'DNF', etc.)
-    combined['position'] = pd.to_numeric(combined['position'], errors='coerce')
-    combined['grid'] = pd.to_numeric(combined['grid'], errors='coerce')
+    all_data.append(df_2025)
     
-    # Remove rows with missing data
-    before = len(combined)
-    combined = combined.dropna(subset=['position', 'grid'])
-    print(f"  Removed {before - len(combined):,} rows with missing data")
-    
-    # Remove duplicates
-    before = len(combined)
-    combined = combined.drop_duplicates()
-    if before > len(combined):
-        print(f"  Removed {before - len(combined):,} duplicates")
-    
-    # Sort
-    combined = combined.sort_values(['year', 'position'])
-    
-    print(f"  Final: {len(combined):,} rows")
+    # Combine all
+    combined = pd.concat(all_data, ignore_index=True)
+    print(f"\n  Total rows combined: {len(combined):,}")
     
     return combined
 
+def clean_data(df):
+    """Clean and standardize the data"""
+    print("\n🧹 Cleaning data...")
+    
+    # Select and reorder columns
+    cols = ['year', 'track', 'driver', 'grid', 'position', 'points']
+    
+    # Check what columns we have
+    available_cols = [col for col in cols if col in df.columns]
+    print(f"  Using columns: {available_cols}")
+    
+    df_clean = df[available_cols].copy()
+    
+    # Convert position to numeric (handles 'NC', 'DNF', etc.)
+    df_clean['position'] = pd.to_numeric(df_clean['position'], errors='coerce')
+    df_clean['grid'] = pd.to_numeric(df_clean['grid'], errors='coerce')
+    df_clean['points'] = pd.to_numeric(df_clean['points'], errors='coerce')
+    
+    # Remove rows with missing critical data
+    before = len(df_clean)
+    df_clean = df_clean.dropna(subset=['position', 'grid'])
+    print(f"  Removed {before - len(df_clean):,} rows with missing position/grid data")
+    
+    # Remove duplicates
+    before = len(df_clean)
+    df_clean = df_clean.drop_duplicates()
+    if before > len(df_clean):
+        print(f"  Removed {before - len(df_clean):,} duplicates")
+    
+    # Sort by year and race (chronologically)
+    df_clean = df_clean.sort_values(['year', 'track', 'position'])
+    
+    print(f"  Final: {len(df_clean):,} rows")
+    
+    return df_clean
+
+def add_engineered_features(df):
+    """Add engineered features to replace categorical variables"""
+    print("\n🔧 Engineering features...")
+    
+    # Sort chronologically for rolling calculations
+    df = df.sort_values(['year', 'track']).reset_index(drop=True)
+    
+    # 1. Driver rolling average finish (last 5 races)
+    print("  Creating driver rolling average finish...")
+    df['driver_avg_position'] = df.groupby('driver')['position'].transform(
+        lambda x: x.rolling(window=5, min_periods=1).mean().shift(1)
+    )
+    
+    # 2. Driver rolling average points (last 5 races)
+    print("  Creating driver rolling average points...")
+    df['driver_avg_points'] = df.groupby('driver')['points'].transform(
+        lambda x: x.rolling(window=5, min_periods=1).mean().shift(1)
+    )
+    
+    # 3. Driver recent form - weighted average (more recent = more weight)
+    print("  Creating driver recent form...")
+    def weighted_recent_form(series):
+        # Weight last 3 races: 3x, 2x, 1x
+        rolled = series.rolling(window=3, min_periods=1)
+        def calc_weighted(window):
+            if len(window) == 0:
+                return None
+            weights = list(range(1, len(window) + 1))
+            return sum(w * v for w, v in zip(weights, window)) / sum(weights)
+        return rolled.apply(calc_weighted).shift(1)
+    
+    df['driver_recent_form'] = df.groupby('driver')['position'].transform(weighted_recent_form)
+    
+    # 4. Track average position change (how much overtaking happens)
+    print("  Creating track overtaking metric...")
+    track_pos_change = df.groupby('track').apply(
+        lambda x: (x['grid'] - x['position']).mean()
+    )
+    df['track_avg_pos_change'] = df['track'].map(track_pos_change)
+    
+    # 5. Driver career average at this track (track-specific performance)
+    print("  Creating driver-track performance history...")
+    df['driver_track_avg'] = df.groupby(['driver', 'track'])['position'].transform(
+        lambda x: x.expanding().mean().shift(1)
+    )
+    
+    # Fill NaN values for first races (use overall averages)
+    df['driver_avg_position'] = df['driver_avg_position'].fillna(df.groupby('driver')['position'].transform('mean'))
+    df['driver_avg_points'] = df['driver_avg_points'].fillna(df.groupby('driver')['points'].transform('mean'))
+    df['driver_recent_form'] = df['driver_recent_form'].fillna(df['driver_avg_position'])
+    df['driver_track_avg'] = df['driver_track_avg'].fillna(df['driver_avg_position'])
+    
+    # Fill any remaining NaN with median
+    df = df.fillna(df.median(numeric_only=True))
+    
+    print(f"  Added 5 engineered features")
+    print(f"  Features: driver_avg_position, driver_avg_points, driver_recent_form,")
+    print(f"            track_avg_pos_change, driver_track_avg")
+    
+    return df
+
 def save_dataset(df):
-    """Save"""
+    """Save the training dataset"""
     print(f"\n💾 Saving to {OUTPUT_FILE}...")
     OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(OUTPUT_FILE, index=False)
     
-    print("\n📊 Final Dataset:")
+    print("\n📊 Final Training Dataset:")
+    print(f"  File: {OUTPUT_FILE}")
     print(f"  Rows: {len(df):,}")
     print(f"  Years: {int(df['year'].min())} - {int(df['year'].max())}")
     print(f"  Columns: {list(df.columns)}")
     
-    print(f"\n📋 Sample:")
-    print(df.head(10))
+    # Show year breakdown
+    print(f"\n� Year breakdown:")
+    year_counts = df.groupby('year').size()
+    for year, count in year_counts.items():
+        print(f"    {year}: {count} rows")
     
-    print(f"\n📊 Summary:")
+    print(f"\n�📋 Sample (first 10 rows):")
+    print(df.head(10).to_string())
+    
+    print(f"\n📊 Statistical Summary:")
     print(df[['year', 'grid', 'position', 'points']].describe())
 
 def main():
-    print("=" * 60)
-    print("F1 Data Merger")
-    print("=" * 60)
+    print("=" * 70)
+    print("F1 Training Data Merger (2018-2025 through Race 18)")
+    print("=" * 70)
     print()
     
-    historic = load_historic()
-    kaggle = load_kaggle_2025()
+    # Load all seasons
+    combined = load_all_seasons()
     
-    combined = merge_and_clean(historic, kaggle)
-    save_dataset(combined)
+    # Clean the data
+    cleaned = clean_data(combined)
     
-    print("\n" + "=" * 60)
-    print("✅ Complete!")
-    print("=" * 60)
-    print("\nNext: python ml/wghtlinreg.py")
+    # Add engineered features
+    with_features = add_engineered_features(cleaned)
+    
+    # Save
+    save_dataset(with_features)
+    
+    print("\n" + "=" * 70)
+    print("✅ Complete! Training data ready for weighted linear regression.")
+    print("=" * 70)
+    print("\n📝 Next steps:")
+    print("   1. Review the training data: dataset/F1_training_data.csv")
+    print("   2. Train your weighted linear regression model")
+    print("   3. Features capture driver/track performance WITHOUT categorical issues")
+    print("   4. Use races 19-24 of 2025 for predictions/testing")
 
 if __name__ == "__main__":
     main()

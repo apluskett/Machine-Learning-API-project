@@ -1,0 +1,122 @@
+track,driver,grid,predicted_position,position,points
+Abu Dhabi,Max Verstappen,4.0,3.7294286356944077,,
+Abu Dhabi,Lando Norris,1.0,4.157431203678633,,
+Abu Dhabi,Oscar Piastri,2.0,4.29177789391216,,
+Abu Dhabi,Carlos Sainz,3.0,5.617881536166503,,
+Abu Dhabi,George Russell,6.0,7.292933819679455,,
+Abu Dhabi,Pierre Gasly,5.0,8.132048395009921,,
+Abu Dhabi,Fernando Alonso,8.0,8.53690604767489,,
+Abu Dhabi,Kimi Antonelli,8.642857142857142,8.653027197086638,,
+Abu Dhabi,Nico Hulkenberg,7.0,9.376530609688569,,
+Abu Dhabi,Lewis Hamilton,16.0,9.681804190583968,,
+Abu Dhabi,Isack Hadjar,9.75,10.037088539125044,,
+Abu Dhabi,Esteban Ocon,11.975206611570249,11.077920665942239,,
+Abu Dhabi,Yuki Tsunoda,11.0,11.258487392114874,,
+Abu Dhabi,Charles Leclerc,19.0,11.570215897632988,,
+Abu Dhabi,Lance Stroll,13.0,11.970947189936908,,
+Abu Dhabi,Liam Lawson,12.0,11.983255096499729,,
+Abu Dhabi,Oliver Bearman,14.947368421052632,12.769156452575537,,
+Abu Dhabi,Gabriel Bortoleto,13.533333333333333,13.100642000775627,,
+Abu Dhabi,Alexander Albon,18.0,13.47967528491152,,
+Abu Dhabi,Franco Colapinto,15.235294117647058,14.051869035857175,,
+Abu Dhabi,Jack Doohan,17.0,15.160885531271749,,
+Brazil,Lando Norris,1.0,3.626245485468032,1.0,25.0
+Brazil,Charles Leclerc,3.0,4.156515095990867,,0.0
+Brazil,Oscar Piastri,4.0,4.705602328605376,5.0,10.0
+Brazil,Kimi Antonelli,2.0,5.197061422181027,2.0,18.0
+Brazil,George Russell,6.0,6.645818667222764,4.0,12.0
+Brazil,Isack Hadjar,5.0,7.4000756096401545,8.0,4.0
+Brazil,Lewis Hamilton,13.0,7.776059238742754,,0.0
+Brazil,Liam Lawson,7.0,8.890290280919118,7.0,6.0
+Brazil,Pierre Gasly,9.0,9.143094679868685,10.0,1.0
+Brazil,Oliver Bearman,8.0,9.21576376766641,6.0,8.0
+Brazil,Fernando Alonso,11.0,9.289916709437012,14.0,0.0
+Brazil,Max Verstappen,19.0,9.638373875682715,3.0,15.0
+Brazil,Carlos Sainz,15.0,10.18435515378874,13.0,0.0
+Brazil,Alexander Albon,12.0,10.514864774066552,11.0,0.0
+Brazil,Lance Stroll,14.0,11.894152574077264,16.0,0.0
+Brazil,Yuki Tsunoda,17.0,13.413797544987922,17.0,0.0
+Brazil,Franco Colapinto,16.0,13.80081750396318,15.0,0.0
+Brazil,Esteban Ocon,20.0,13.931024947466097,12.0,0.0
+Brazil,Gabriel Bortoleto,18.0,14.451259844402205,,0.0
+Brazil,Nico Hulkenberg,71.0,20.0,9.0,2.0
+Las Vegas,Max Verstappen,2.0,2.898361711766193,1.0,25.0
+Las Vegas,Lando Norris,1.0,4.183392272735328,,0.0
+Las Vegas,Carlos Sainz,3.0,5.506176402055967,5.0,10.0
+Las Vegas,Oscar Piastri,5.0,5.608456373617923,,0.0
+Las Vegas,George Russell,4.0,6.22897294302472,2.0,18.0
+Las Vegas,Charles Leclerc,9.0,7.1226516711152374,4.0,12.0
+Las Vegas,Fernando Alonso,7.0,8.155572347043101,11.0,0.0
+Las Vegas,Isack Hadjar,8.0,9.27692216611804,6.0,8.0
+Las Vegas,Liam Lawson,6.0,9.340834268573726,14.0,0.0
+Las Vegas,Pierre Gasly,10.0,10.29954436229455,13.0,0.0
+Las Vegas,Lewis Hamilton,19.0,10.936377616229324,8.0,4.0
+Las Vegas,Nico Hulkenberg,11.0,11.183828139947192,7.0,6.0
+Las Vegas,Lance Stroll,12.0,11.47730684987922,,0.0
+Las Vegas,Esteban Ocon,13.0,11.572622599114624,9.0,2.0
+Las Vegas,Kimi Antonelli,17.0,12.265759979816696,3.0,15.0
+Las Vegas,Oliver Bearman,14.0,12.356252110347727,10.0,1.0
+Las Vegas,Alexander Albon,16.0,12.715681819368545,,0.0
+Las Vegas,Franco Colapinto,15.0,13.944489459789907,15.0,0.0
+Las Vegas,Gabriel Bortoleto,18.0,15.030143400590642,,0.0
+Las Vegas,Yuki Tsunoda,20.0,15.355854408229233,12.0,0.0
+Mexico,Lewis Hamilton,3.0,3.507052319321862,8.0,4.0
+Mexico,Charles Leclerc,2.0,3.746618347164488,2.0,18.0
+Mexico,Max Verstappen,5.0,3.7619246464290326,3.0,15.0
+Mexico,Lando Norris,1.0,3.7852201553106237,1.0,25.0
+Mexico,George Russell,4.0,6.022084392106064,7.0,6.0
+Mexico,Oscar Piastri,7.0,6.0321193852105655,5.0,10.0
+Mexico,Kimi Antonelli,6.0,7.086653425742881,6.0,8.0
+Mexico,Isack Hadjar,8.0,8.857013279772193,13.0,0.0
+Mexico,Carlos Sainz,12.0,9.036672115773428,17.0,0.0
+Mexico,Oliver Bearman,9.0,9.773071556852804,4.0,12.0
+Mexico,Esteban Ocon,11.0,10.309141814830287,9.0,2.0
+Mexico,Yuki Tsunoda,10.0,10.544191880821806,11.0,0.0
+Mexico,Fernando Alonso,14.0,10.938137946075098,,0.0
+Mexico,Nico Hulkenberg,13.0,11.45533376909184,,0.0
+Mexico,Alexander Albon,17.0,12.583515473644901,12.0,0.0
+Mexico,Liam Lawson,15.0,12.814814383096218,,0.0
+Mexico,Pierre Gasly,18.0,13.261168657343042,15.0,0.0
+Mexico,Gabriel Bortoleto,16.0,13.744925847385165,10.0,1.0
+Mexico,Lance Stroll,19.0,14.238135679990073,14.0,0.0
+Mexico,Franco Colapinto,20.0,15.600905164908568,16.0,0.0
+Qatar,Max Verstappen,1.0,2.0542023737009076,1.0,26.0
+Qatar,Oscar Piastri,2.0,3.710603038043109,2.0,18.0
+Qatar,Lando Norris,3.0,4.76761654848634,4.0,12.0
+Qatar,Carlos Sainz,4.0,5.686728702938684,3.0,15.0
+Qatar,Charles Leclerc,8.0,6.437895305138324,8.0,4.0
+Qatar,Kimi Antonelli,5.0,6.734858870427248,5.0,10.0
+Qatar,George Russell,6.0,6.9218810633814405,6.0,8.0
+Qatar,Fernando Alonso,7.0,7.61364672888078,7.0,6.0
+Qatar,Lewis Hamilton,12.0,7.655695249673517,12.0,0.0
+Qatar,Alex Albon,11.0,10.114331305971307,11.0,0.0
+Qatar,Liam Lawson,9.0,10.278011391710365,9.0,2.0
+Qatar,Yuki Tsunoda,10.0,10.697507555339795,10.0,1.0
+Qatar,Esteban Ocon,15.0,11.903251237452313,15.0,0.0
+Qatar,Pierre Gasly,16.0,12.483965358237974,16.0,0.0
+Qatar,Gabriel Bortoleto,13.0,12.5278226252099,13.0,0.0
+Qatar,Franco Colapinto,14.0,13.175343285060324,14.0,0.0
+Qatar,Lance Stroll,17.0,13.236319102033207,,0.0
+Qatar,Isack Hadjar,18.0,13.264416392184529,,0.0
+Qatar,Oliver Bearman,19.0,14.18047466926514,,0.0
+Qatar,Nico Hulkenberg,20.0,14.847351877189574,,0.0
+United States,Max Verstappen,1.0,1.3655282349045965,1.0,25.0
+United States,Charles Leclerc,3.0,3.477265654587227,3.0,15.0
+United States,Lando Norris,2.0,3.540502467510657,2.0,18.0
+United States,Lewis Hamilton,5.0,3.7319414721176525,4.0,12.0
+United States,Oscar Piastri,6.0,4.839493308650627,5.0,10.0
+United States,George Russell,4.0,5.392533262502792,6.0,8.0
+United States,Kimi Antonelli,7.0,6.889756629569426,13.0,0.0
+United States,Carlos Sainz,9.0,7.091768570743797,,0.0
+United States,Fernando Alonso,10.0,8.40407533138343,10.0,1.0
+United States,Oliver Bearman,8.0,8.710866093819716,9.0,2.0
+United States,Nico Hulkenberg,11.0,9.917000434786656,8.0,4.0
+United States,Liam Lawson,12.0,10.582985488307514,11.0,0.0
+United States,Pierre Gasly,14.0,11.02417521790698,19.0,0.0
+United States,Yuki Tsunoda,13.0,11.136525060283986,7.0,6.0
+United States,Esteban Ocon,17.0,12.427674068253902,15.0,0.0
+United States,Alexander Albon,18.0,12.477188547976203,14.0,0.0
+United States,Franco Colapinto,15.0,12.721135292471653,17.0,0.0
+United States,Gabriel Bortoleto,16.0,13.115374717781894,18.0,0.0
+United States,Isack Hadjar,20.0,13.419314151326706,16.0,0.0
+United States,Lance Stroll,19.0,13.552068951191835,12.0,0.0

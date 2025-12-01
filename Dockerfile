@@ -12,12 +12,12 @@ RUN pip install --no-cache-dir --upgrade pip && \
 pip install --no-cache-dir -r requirements.txt
 
 COPY ./app ./app
-
-RUN mkdir -p /app/data /app/models
+COPY ./models ./models
+COPY ./dataset ./dataset
 
 EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "Import requests; requests.get('http://localhost:8000/health')"
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
